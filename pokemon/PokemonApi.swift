@@ -8,34 +8,31 @@
 import Foundation
 import Combine
 
-//https://github.com/V8tr/InfiniteListSwiftUI/blob/master/InfiniteListSwiftUI/GithubAPI.swift
-
-//https://pokeapi.co/docs/v2#resource-listspagination-section
-
-//https://documenter.getpostman.com/view/12403653/TVK8cLiK
-
-enum PokemonApi {
-    static let pageSize = 20
-    
-    static func searchPokemon(query: String, page: Int) -> AnyPublisher<[Result], Error> {
-        let url = URL(string:
-//                        "https://api.github.com/search/repositories?q=\(query)&sort=stars&per_page=\(Self.pageSize)&page=\(page)")!
-                      "https://pokeapi.co/api/v2/pokemon/?limit=\(self.pageSize)+\(page)")!
-        return URLSession.shared
-            .dataTaskPublisher(for: url)
-            .handleEvents(receiveOutput: { print(NSString(data: $0.data, encoding: String.Encoding.utf8.rawValue)!) })
-            .tryMap { try JSONDecoder().decode(PokemonSearchResult<Result>.self, from: $0.data).items }
-            .receive(on: DispatchQueue.main)
-            .eraseToAnyPublisher()
-    }
+struct Pokemon: Codable {
+    let count: Int
+    let next: String
+    let previous: String?
+    let results : [PokemonEntry]
 }
 
-struct PokemonSearchResult<T: Codable>: Codable {
-    let items: [T]
-}
-
-struct Result: Codable {
+struct PokemonEntry: Codable, Identifiable {
+    let id = UUID()
     var name : String
     var url: String
 }
 
+class PokemonApi {
+    @Published var count = 0
+
+    func getResults(completion : @escaping ([PokemonEntry]) -> ()) {
+        guard let url = URL(string: "https://pokeapi.co/api/v2/pokemon/?offset=\(count)&limit=20") else { return }
+        URLSession.shared.dataTask(with: url) { (data, _, _) in
+            let pokemonList = try! JSONDecoder().decode(Pokemon.self, from: data!)
+
+            DispatchQueue.main.async {
+                completion(pokemonList.results)
+            }
+        }
+        .resume()
+    }
+}
