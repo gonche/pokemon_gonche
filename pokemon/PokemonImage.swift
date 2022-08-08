@@ -6,13 +6,15 @@
 //
 
 import SwiftUI
+import CachedAsyncImage
 
 struct PokemonImage: View {
     var imageLink = ""
     @State private var pokemonSprite = ""
 
     var body: some View {
-        AsyncImage(url: URL(string: pokemonSprite))
+        /// added a package to support caching of images from https://github.com/lorenzofiamingo/swiftui-cached-async-image
+        CachedAsyncImage(url: URL(string: pokemonSprite))
             .frame(width: 75, height: 75)
             .onAppear {
                 let loadedData = UserDefaults.standard.string(forKey: imageLink)
@@ -34,4 +36,10 @@ struct PokemonImage: View {
             self.pokemonSprite = tempSprite ?? "placeholder"
         }
     }
+}
+
+// URLCache+imageCache.swift
+
+extension URLCache {
+    static let imageCache = URLCache(memoryCapacity: 512*1000*1000, diskCapacity: 10*1000*1000*1000)
 }
