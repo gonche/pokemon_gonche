@@ -14,6 +14,9 @@ struct PokemonStats : View {
     var body: some View {
         VStack {
             Text(name)
+                .onAppear{
+                    ///TODO fetch abilities etc from stats api
+                }
         }
         .navigationTitle("")
     }
