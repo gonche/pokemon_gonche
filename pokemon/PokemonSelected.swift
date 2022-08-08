@@ -21,7 +21,6 @@ class PokemonSelectedApi {
         guard let url = URL(string: url) else { return }
         URLSession.shared.dataTask(with: url) { (data, _, _) in
             let pokemonSprite = try! JSONDecoder().decode(PokemonSelected.self, from: data!)
-            print(pokemonSprite)
             DispatchQueue.main.async {
                 completion(pokemonSprite.sprites)
             }
